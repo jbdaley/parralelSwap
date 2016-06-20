@@ -1,4 +1,6 @@
 #define N (3)
+#define LOCK(x) atomic { (!x) -> x = true; }
+#define UNLOCK(x) x = false;
 int vals[N];
 bool locks[N];
 proctype doWork(int idx) {
@@ -20,17 +22,13 @@ proctype doWork(int idx) {
 	if
 		:: (nr == idx) -> skip;
 		:: else ->
-			atomic { 
-				(!locks[min]) -> locks[min] = true;
-			}
-			atomic {
-				(!locks[max]) -> locks[max] = true;
-			}
+			LOCK(locks[min])
+			LOCK(locks[max])
 			int temp = vals[min];
 			vals[min] = vals[max];
 			vals[max] = temp
-			locks[min] = false;
-			locks[max] = false;
+			UNLOCK(locks[min])
+			UNLOCK(locks[max])
 	fi;
 }
 init {
