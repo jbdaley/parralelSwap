@@ -1,6 +1,7 @@
 #define N (3)
 #define LOCK(x) atomic { (!x) -> x = true; }
 #define UNLOCK(x) x = false;
+#define MAXITR (3)
 int vals[N];
 bool locks[N];
 proctype doWork(int idx) {
@@ -22,13 +23,20 @@ proctype doWork(int idx) {
 	if
 		:: (nr == idx) -> skip;
 		:: else ->
-			LOCK(locks[min])
-			LOCK(locks[max])
-			int temp = vals[min];
-			vals[min] = vals[max];
-			vals[max] = temp
-			UNLOCK(locks[min])
-			UNLOCK(locks[max])
+			int itr;
+			itr = 0;
+			do
+			:: (itr < MAXITR) 
+				LOCK(locks[min])
+				LOCK(locks[max])
+				int temp = vals[min];
+				vals[min] = vals[max];
+				vals[max] = temp
+				UNLOCK(locks[min])
+				UNLOCK(locks[max])
+				itr++;
+			:: else -> break;
+			od;
 	fi;
 }
 init {
