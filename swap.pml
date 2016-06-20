@@ -2,7 +2,10 @@
 #define LOCK(x) atomic { (!x) -> x = true; }
 #define UNLOCK(x) x = false;
 int vals[N];
+int nProcs;
+bool procMutex;
 bool locks[N];
+ltl liveness { eventually (always (nProcs == 0)) }
 proctype doWork(int idx) {
 	int nr = 0;	/* pick random value  */
 	do
@@ -30,6 +33,9 @@ proctype doWork(int idx) {
 			UNLOCK(locks[min])
 			UNLOCK(locks[max])
 	fi;
+	LOCK(procMutex)
+	nProcs--;
+	UNLOCK(procMutex)
 }
 init {
 	int i; // rhs is a const expression
@@ -37,13 +43,14 @@ init {
 	for(i: 0 .. N-1) {
 		vals[i] = i;
 	}
+	nProcs = N;
 	// Start processes
 	for(i: 0 .. N-1) {
 		run doWork( i );
 	}
 
 	// Wait for process termination
-	(_nr_pr == 1)
+	(_nr_pr == 1) // Alternatively "(nProcs == 0)"
 
 	// Validate array is a permutation
 	for(i: 0 .. N-1) {
