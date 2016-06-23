@@ -33,7 +33,7 @@ proctype doWork(int idx) {
 			UNLOCK(procMutex);
 			int temp = vals[min];
 			vals[min] = vals[max];
-			vals[max] = temp
+			vals[max] = temp;
 			LOCK(procMutex);
 			nProcs--;
 			UNLOCK(procMutex);
