@@ -61,21 +61,22 @@ init {
 
 never safety {
 	do
-	:: (initialized) ->
-	// Validate array is a permutation
-	int i;
-	for(i: 0 .. N-1) {
-		int j;
-		bool found;
-		found = false;
-		for(j: 0 .. N-1) {
-			if
-				:: vals[j] == i ->
-						found = true;
-				:: else skip;
-			fi;
+	:: atomic { (initialized) ->
+		// Validate array is a permutation
+		int i;
+		for(i: 0 .. N-1) {
+			int j;
+			bool found;
+			found = false;
+			for(j: 0 .. N-1) {
+				if
+					:: vals[j] == i ->
+							found = true;
+					:: else skip;
+				fi;
+			}
+			assert(found)
 		}
-		assert(found)
 	}
 	od;
 	skip;
