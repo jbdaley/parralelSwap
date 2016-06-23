@@ -5,7 +5,7 @@ int vals[N];
 int nProcs;
 bool procMutex;
 bool locks[N];
-//ltl liveness { eventually (always (nProcs == 0)) }
+ltl liveness { eventually (always (nProcs == 0)) }
 proctype doWork(int idx) {
 	int randVal = 0;	// randVal should be in the range from [0, N)
 	do
