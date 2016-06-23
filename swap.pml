@@ -2,33 +2,37 @@
 #define LOCK(x) atomic { (!x) -> x = true; }
 #define UNLOCK(x) x = false;
 #define MAXITR (3)
+bool initialized;
 int vals[N];
+int nProcs;
+bool procMutex;
 bool locks[N];
+//ltl liveness { eventually (always (nProcs == 0)) }
 proctype doWork(int idx) {
-	int nr = 0;	/* pick random value  */
+	int randVal = 0;	// randVal should be in the range from [0, N)
 	do
-		:: (nr < N-1) -> nr++		/* randomly increment */
-		:: break	/* or stop            */
+		:: (randVal < N-1) -> randVal++
+		:: break
 	od;
 	int min;
 	int max;
 	if
-		:: (nr < idx) ->
-				min = nr;
+		:: (randVal < idx) ->
+				min = randVal;
 				max = idx;
 		:: else ->
 				min = idx;
-				max = nr;
+				max = randVal;
 	fi;
 	if
-		:: (nr == idx) -> skip;
+		:: (randVal == idx) -> skip;
 		:: else ->
 			int itr;
 			itr = 0;
 			do
 			:: (itr < MAXITR) 
-				LOCK(locks[min])
-				LOCK(locks[max])
+				LOCK(locks[min]);
+				LOCK(locks[max]);
 				int temp = vals[min];
 				vals[min] = vals[max];
 				vals[max] = temp
@@ -40,20 +44,26 @@ proctype doWork(int idx) {
 	fi;
 }
 init {
-	int i; // rhs is a const expression
+	int i;
 	// Init values array
 	for(i: 0 .. N-1) {
 		vals[i] = i;
 	}
+	initialized = true;
 	// Start processes
 	for(i: 0 .. N-1) {
 		run doWork( i );
 	}
 
 	// Wait for process termination
-	(_nr_pr == 1)
+	(_nr_pr == 1) // Alternatively "(nProcs == 0)"
+}
 
+never safety {
+	do
+	:: (initialized) ->
 	// Validate array is a permutation
+	int i;
 	for(i: 0 .. N-1) {
 		int j;
 		bool found;
@@ -65,7 +75,8 @@ init {
 				:: else skip;
 			fi;
 		}
-		printf("%d\n", vals[i]);
 		assert(found)
 	}
+	od;
+	skip;
 }
