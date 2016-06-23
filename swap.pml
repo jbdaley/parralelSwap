@@ -1,7 +1,6 @@
 #define N (3)
 #define LOCK(x) atomic { (!x) -> x = true; }
 #define UNLOCK(x) x = false;
-bool initialized;
 int vals[N];
 int nProcs;
 bool procMutex;
@@ -47,7 +46,6 @@ init {
 	for(i: 0 .. N-1) {
 		vals[i] = i;
 	}
-	initialized = true;
 	// Start processes
 	for(i: 0 .. N-1) {
 		run doWork( i );
