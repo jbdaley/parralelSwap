@@ -33,9 +33,15 @@ proctype doWork(int idx) {
 			:: (itr < MAXITR) 
 				LOCK(locks[min]);
 				LOCK(locks[max]);
+				LOCK(procMutex);
+				nProcs++;
+				UNLOCK(procMutex);
 				int temp = vals[min];
 				vals[min] = vals[max];
 				vals[max] = temp
+				LOCK(procMutex);
+				nProcs--;
+				UNLOCK(procMutex);
 				UNLOCK(locks[min])
 				UNLOCK(locks[max])
 				itr++;
@@ -56,7 +62,7 @@ init {
 	}
 
 	// Wait for process termination
-	(_nr_pr == 1) // Alternatively "(nProcs == 0)"
+	(_nr_pr == 1)
 }
 
 never safety {
