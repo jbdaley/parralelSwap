@@ -2,12 +2,11 @@
 #define LOCK(x) atomic { (!x) -> x = true; }
 #define UNLOCK(x) x = false;
 #define MAXITR (3)
-bool initialized;
 int vals[N];
 int nProcs;
 bool procMutex;
 bool locks[N];
-//ltl liveness { eventually (always (nProcs == 0)) }
+ltl liveness { eventually (always (nProcs == 0)) }
 proctype doWork(int idx) {
 	int randVal = 0;	// randVal should be in the range from [0, N)
 	do
@@ -55,35 +54,26 @@ init {
 	for(i: 0 .. N-1) {
 		vals[i] = i;
 	}
-	initialized = true;
 	// Start processes
 	for(i: 0 .. N-1) {
 		run doWork( i );
 	}
 
 	// Wait for process termination
-	(_nr_pr == 1)
-}
-
-never safety {
-	do
-	:: atomic { (initialized) ->
-		// Validate array is a permutation
-		int i;
-		for(i: 0 .. N-1) {
-			int j;
-			bool found;
-			found = false;
-			for(j: 0 .. N-1) {
-				if
-					:: vals[j] == i ->
-							found = true;
-					:: else skip;
-				fi;
-			}
-			assert(found)
+	(_nr_pr == 1) // Alternatively "(nProcs == 0)"
+		
+	// Validate array is a permutation
+	for(i: 0 .. N-1) {
+		int j;
+		bool found;
+		found = false;
+		for(j: 0 .. N-1) {
+			if
+				:: vals[j] == i ->
+						found = true;
+				:: else skip;
+			fi;
 		}
+		assert(found)
 	}
-	od;
-	skip;
 }
